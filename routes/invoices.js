@@ -6,7 +6,7 @@ let router = new express.Router();
 router.get('/', async (req, res, next) => {
     try {
         const results = await db.query(`SELECT * FROM invoices`);
-        return res.json(results.rows);
+        return res.json({"invoices": results.rows});
     } catch(err) {
         return next(err);
     }
@@ -47,8 +47,11 @@ router.put('/:id', async (req,res,next) => {
 
         const currResult = await db.query('SELECT paid FROM invoices WHERE id = $1',[id]);
         
-        
+        if(currResult.rows.length===0){
+            throw new ExpressError('No such invoice',404);
+        }
         const currPaidDate = currResult.rows[0].paid_date;
+                
         
         if (!currPaidDate && paid){
             paidDate = new Date();
